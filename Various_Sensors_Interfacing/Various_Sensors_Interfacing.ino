@@ -10,6 +10,7 @@
       - Sound level
       - Motion sensor
       - IR Receiver
+      -Water Level
    In addition, the data will be timestamped using the Real Time Clock (RTC) module
 
    Requires:
@@ -39,6 +40,8 @@
 
 */
 
+#define LED 41  //LED test pin
+
 //---------------------------- DHT 11 Temperature and Humidty Module ----------------------------
 #include <EduIntro.h>               // Include the EduIntro library
 DHT11 dht11(30);                    // Creating DHT11 object sensor on pin 30
@@ -50,17 +53,9 @@ DHT11 dht11(30);                    // Creating DHT11 object sensor on pin 30
 //-----------------------------------------------------------------------------------------------
 
 //---------------------------------------- Water Level ------------------------------------------
-#define WATERLEVEL_PIN A8       // Define digital pin location for Water Level Sensor
+#define WATERLEVEL_PIN A10       // Define digital pin location for Water Level Sensor
 //-----------------------------------------------------------------------------------------------
 
-//---------------------------------------- Rotary Encoder ----------------------------------------
-#define ENCODER_A_PIN 45    // Define digital pin location for Rotary Encoder pin A
-#define ENCODER_B_PIN 47      // Define digital pin location for Rotary Encoder pin B
-int encoderPos =0;
-int pinALast;
-int AVal;
-boolean BCW;
-//-----------------------------------------------------------------------------------------------
 
 
 //------------------------------------- Sound Sensor Module -------------------------------------
@@ -76,11 +71,12 @@ boolean BCW;
 
 //------------------------------------- IR Receiver Module --------------------------------------
 // IMPORTANT: Cannot use IRremote library with DHT (or Servo) due to timer conflict
-
+/*
 #include <IRremote.h>
 #define IR_REC_PIN 12               // Define pin location for IR receiver module
 IRrecv irrecv(IR_REC_PIN);          // Declare object instance of IR receiver
 decode_results results;             // Special type of variable for IR Receiver data
+*/
 //-----------------------------------------------------------------------------------------------
 
 
@@ -94,23 +90,16 @@ RTC_DS1307 rtc;                       // Declare an RTC object instance
 int loopCounter = 0;                // Keeps track of current void loop() iteration
 
 void setup() {
-  Serial.begin(38400);               // Initialize Serial communications
+  Serial.begin(9600);               // Initialize Serial communications
 
+  pinMode(LED, OUTPUT);
+  
   //---------------------------------------- Photoresistor ----------------------------------------
   pinMode(PHOTORESISTOR_PIN, INPUT); // Declare photoresistor as input to Arduino
   //-----------------------------------------------------------------------------------------------
 
   //---------------------------------------- Water Level ------------------------------------------
   pinMode(WATERLEVEL_PIN, INPUT); // Declare Water Level Sensor as input to Arduino
-  //-----------------------------------------------------------------------------------------------
-
-  //---------------------------------------- Rotary Encoder ----------------------------------------
- 
- pinMode(ENCODER_A_PIN,INPUT);   // Declare digital pin as input for Rotary Encoder pin A
- pinMode(ENCODER_B_PIN,INPUT);     // Declare digital pin as input for Rotary Encoder pin B
-
- pinALast = digitalRead(ENCODER_A_PIN);
-  
   //-----------------------------------------------------------------------------------------------
 
   //------------------------------------- Sound Sensor Module -------------------------------------
@@ -170,7 +159,7 @@ void loop() {
       Temperature Range: 0-50 °C ±2% °C
   */
   dht11.update();                   // Updates current data in DHT11 (updates at every loop)
-  int C = dht11.readCelsius();      // Reads the temperature in Celsius
+  float C = dht11.readCelsius();      // Reads the temperature in Celsius
   float F = dht11.readFahrenheit(); // Reads the temperature in Fahrenheit
   int H = dht11.readHumidity();     // Reads the humidity index
 
@@ -189,9 +178,16 @@ void loop() {
          - Photoresistor connected in series with 10kΩ resistor
          - Signal pin (A15) connected to resistor and photoresitor node
   */
-  float light = analogRead(PHOTORESISTOR_PIN);
-  Serial.print("Light level: ");
-  Serial.println(light);
+
+  float lightSensorVal = analogRead(PHOTORESISTOR_PIN);
+  int lux=sensorRawToPhys(lightSensorVal);
+  Serial.print("Raw value from sensor= ");
+  Serial.println(lightSensorVal); // the analog reading
+  Serial.print("Physical value from sensor = ");
+  Serial.print(lux); // the analog reading
+  Serial.println(" lumen"); // the analog reading
+  
+  
 
   //-----------------------------------------------------------------------------------------------
 
@@ -200,37 +196,6 @@ void loop() {
   Serial.print("Water level: ");
   Serial.println(liquid_level);//prints out liquid level sensor reading
   delay(100);//delays 100ms
-  //-----------------------------------------------------------------------------------------------
-
-  //---------------------------------------- Rotary Encoder ----------------------------------------
- 
-  AVal = digitalRead(ENCODER_A_PIN);
-
-  if(AVal!= pinALast){
-
-    if(AVal != digitalRead(ENCODER_B_PIN)){
-      BCW = true;
-
-      encoderPos++;
-    }
-    else{
-      BCW = false;
-      encoderPos -- ;
-    }
-    Serial.print("Rotated: ");
-    if(BCW){
-    Serial.println("clockwise");
-      }
-      else{
-    Serial.println("counterclockwise");
-}
-Serial.print( "Encoder Position: ");
-Serial.println(encoderPos);
-pinALast=AVal;}
-
-  
- 
-  
   //-----------------------------------------------------------------------------------------------
 
 
@@ -284,17 +249,18 @@ pinALast=AVal;}
      Each time IR receiver detects data, it stops so it needs to be resumed at the end
 
      NOTE: Also has a temperature sensor (like the MPU6050)
-  */
-//  #include <IRremote.h> //This includes the infrared remote header file
-//  int IR_PIN = 12; //Pin where we connect the output of the IR sensor 
-//   if (irrecv.decode(&results)) {
-//     Serial.println("IR remote detected!");
-//      irrecv.resume();              // Resume functionality of IR receiver module
-//    }
+  
+   if (irrecv.decode(&results)) {
+     Serial.println("IR remote detected!");
+      irrecv.resume();              // Resume functionality of IR receiver module
+    }
+    */
   //-----------------------------------------------------------------------------------------------
 
   Serial.println();
 }
+
+
   int sensorRawToPhys(int raw){
   // Conversion rule
   float Vout = float(raw) * (5 / float(1023));// Conversion analog to voltage
