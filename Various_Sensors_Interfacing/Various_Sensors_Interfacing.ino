@@ -280,13 +280,20 @@ pinALast=AVal;}
 
      NOTE: Also has a temperature sensor (like the MPU6050)
   */
-  #include <IRremote.h> //This includes the infrared remote header file
-  int IR_PIN = 12; //Pin where we connect the output of the IR sensor 
-   if (irrecv.decode(&results)) {
-     Serial.println("IR remote detected!");
-      irrecv.resume();              // Resume functionality of IR receiver module
-    }
+//  #include <IRremote.h> //This includes the infrared remote header file
+//  int IR_PIN = 12; //Pin where we connect the output of the IR sensor 
+//   if (irrecv.decode(&results)) {
+//     Serial.println("IR remote detected!");
+//      irrecv.resume();              // Resume functionality of IR receiver module
+//    }
   //-----------------------------------------------------------------------------------------------
 
   Serial.println();
+}
+  int sensorRawToPhys(int raw){
+  // Conversion rule
+  float Vout = float(raw) * (5 / float(1023));// Conversion analog to voltage
+  float RLDR = (10000 * (5 - Vout))/Vout; // Conversion voltage to resistance
+  int phys=500/(RLDR/1000); // Conversion resitance to lumen
+  return phys;
 }
