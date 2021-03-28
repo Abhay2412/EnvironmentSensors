@@ -246,6 +246,11 @@ pinALast=AVal;}
   Serial.println(sound);
   if (digitalRead(SOUND_DIGITAL_PIN) == HIGH) {
     Serial.println("It is too loud");
+    digitalWrite(LED,HIGH);
+  }
+
+  else{
+    digitalWrite(LED, LOW);
   }
   //-----------------------------------------------------------------------------------------------
 
