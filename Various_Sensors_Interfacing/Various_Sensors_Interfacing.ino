@@ -234,27 +234,31 @@ void loop() {
         - Potentiometer on the outside
             -- Time-delay adjustment (CW to increase time-delay from 3 to 300 seconds)
   */
-  #define PIR_PIN = 12;
-  check = digitalRead(PIR_PIN);  // read input value
-  
-  if (check == HIGH)  // check if the input is HIGH
+ int check = digitalRead(PIR_PIN);  // read input value
+bool motionState = false; //Start with so there is no motion detected 
+
+// If motion is detected (PIR_PIN = HIGH), do the following:
+   if (check == HIGH)  // check if the input is HIGH
   {            
     digitalWrite(LED, HIGH);  // Turns the LED test on
-  
-    if (PIR_PIN == LOW) 
+    
+  // Change the motion state to true (motion detected):
+    if (motionState == false) 
   {
-      Serial.println("Motion detected!"); // Detects that there is a motion change 
-      PIR_PIN = HIGH;
+     Serial.println("Motion detected!");
+      motionState = true;
     }
-  } 
+    }
+  // If no motion is detected (PIR_PIN = LOW), do the following:
   else 
   {
     digitalWrite(LED, LOW); //Turns the LED test OFF
-  
-    if (PIR_PIN == HIGH)
+    
+  // Change the motion state to false (no motion):
+    if (motionState == true)
   {
       Serial.println("Motion ended!");  // This will say that there is no motion anymore 
-      PIR_PIN = LOW;
+      motionState = false;
     }
   }
   //-----------------------------------------------------------------------------------------------
